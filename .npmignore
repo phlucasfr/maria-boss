@@ -1,0 +1,16 @@
+src/
+tests/
+benchmarks/
+scripts/
+examples/
+docker/
+.github/
+.cursor/
+*.test.ts
+tsconfig*.json
+eslint.config.js
+vitest.config.ts
+Makefile
+docker-compose.yml
+Dockerfile
+.env*

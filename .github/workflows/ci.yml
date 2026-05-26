@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: mariaboss
+          MARIADB_DATABASE: mariaboss
+          MARIADB_USER: mariaboss
+          MARIADB_PASSWORD: mariaboss
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: chmod +x scripts/check-secrets.sh && ./scripts/check-secrets.sh
+      - run: npm run build
+      - run: npm run lint
+      - run: npm run format:check
+      - name: Apply migrations
+        env:
+          MARIABOSS_PORT: 3306
+        run: npm run migration:up
+      - name: Unit tests
+        run: npx vitest run tests/unit
+      - name: Integration tests
+        env:
+          MARIABOSS_PORT: 3306
+        run: npx vitest run tests/integration tests/concurrency

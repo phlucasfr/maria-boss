@@ -1,0 +1,35 @@
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: mariaboss-mariadb
+    restart: unless-stopped
+    environment:
+      # Dev-only credentials. Override via .env locally; not for production.
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-mariaboss}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-mariaboss}
+      MARIADB_USER: ${MARIADB_USER:-mariaboss}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-mariaboss}
+    ports:
+      - '3307:3306'
+    volumes:
+      - mariaboss_data:/var/lib/mysql
+      - ./docker/mariadb/conf.d:/etc/mysql/mariadb.conf.d:ro
+      - ./docker/mariadb/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: mariaboss-prometheus
+    profiles: ['observability']
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+volumes:
+  mariaboss_data:

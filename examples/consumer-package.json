@@ -1,0 +1,13 @@
+{
+  "name": "my-app-with-mariaboss",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "mariaboss": "github:phlucasfr/maria-boss#v0.1.0"
+  },
+  "scripts": {
+    "db:migrate": "mariaboss migrate"
+  }
+}
